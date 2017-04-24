@@ -1,7 +1,7 @@
 {
   "name": "hyperapp-router",
   "description": "A frontend route handler for hyperapp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "dist/index.js",
   "jsnext:main": "src/index.js",
   "module": "src/index.js",
