@@ -1,0 +1,31 @@
+{
+  "name": "hyperapp-router",
+  "description": "A frontend route handler for hyperapp",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "jsnext:main": "src/index.js",
+  "module": "src/index.js",
+  "license": "MIT",
+  "repository": "lukejacksonn/hyperapp-router",
+  "author": "Luke Jackson",
+  "keywords": [
+    "hyperapp",
+    "router"
+  ],
+  "scripts": {
+    "test": "jest --coverage --no-cache",
+    "build": "rollup -cm -n hyperapp-router -f umd -i src/index.js -o dist/index.js",
+    "prepublish": "npm run build",
+    "release": "npm run build && npm test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && npm publish"
+  },
+  "babel": {
+    "presets": "es2015"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.22.0",
+    "jest": "^19.0.2",
+    "rollup": "^0.41.4",
+    "rollup-plugin-uglify": "^1.0.1",
+    "hyperapp": "^0.8.1"
+  }
+}
