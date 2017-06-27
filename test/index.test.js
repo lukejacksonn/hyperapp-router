@@ -1,6 +1,6 @@
 import { h, app } from "hyperapp"
 import { expectHTMLToBe } from "./util"
-import Router from "../src"
+import { Router } from "../src"
 
 Object.defineProperty(window.location, "pathname", {
   writable: true
