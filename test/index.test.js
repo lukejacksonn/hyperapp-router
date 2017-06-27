@@ -1,6 +1,6 @@
 import { h, app } from "hyperapp"
 import { expectHTMLToBe } from "./util"
-import { Router } from "../src"
+import Router from "../src"
 
 Object.defineProperty(window.location, "pathname", {
   writable: true
@@ -14,10 +14,8 @@ beforeEach(() => {
 
 test("/", () => {
   app({
-    view: {
-      "/": state => h("div", {}, "foo")
-    },
-    plugins: [Router]
+    view: [["/", state => h("div", {}, "foo")]],
+    mixins: [Router]
   })
 
   expectHTMLToBe`
@@ -28,10 +26,8 @@ test("/", () => {
 
 test("*", () => {
   app({
-    view: {
-      "*": state => h("div", {}, "foo"),
-    },
-    plugins: [Router],
+    view: [["*", state => h("div", {}, "foo")]],
+    mixins: [Router],
     events: {
       loaded: (state, actions) => {
         actions.router.go("/bar")
@@ -60,10 +56,10 @@ test("routes", () => {
   window.location.pathname = "/foo/bar/baz"
 
   app({
-    view: {
-      "/foo/bar/baz": state => h("div", {}, "foo", "bar", "baz")
-    },
-    plugins: [Router]
+    view: [
+      ["/foo/bar/baz", state => h("div", {}, "foo", "bar", "baz")]
+    ],
+    mixins: [Router]
   })
 
   expectHTMLToBe`
@@ -74,15 +70,52 @@ test("routes", () => {
 })
 
 test("route params", () => {
-  window.location.pathname = "/beep/bop/boop"
+  window.location.pathname = "/be_ep/bOp/b00p"
 
   app({
-    view: {
-      "/:foo/:bar/:baz": state =>
-        h("ul", {}, Object.keys(state.router.params).map(key =>
-          h("li", {}, `${key}:${state.router.params[key]}`)))
-    },
-    plugins: [Router]
+    view: [
+      [
+        "/:foo/:bar/:baz",
+        state =>
+          h(
+            "ul",
+            {},
+            Object.keys(state.router.params).map(key =>
+              h("li", {}, `${key}:${state.router.params[key]}`)
+            )
+          )
+      ]
+    ],
+    mixins: [Router]
+  })
+
+  expectHTMLToBe`
+    <ul>
+      <li>foo:be_ep</li>
+      <li>bar:bOp</li>
+      <li>baz:b00p</li>
+    </ul>
+  `
+})
+
+test("route params separated by a dash", () => {
+  window.location.pathname = "/beep-bop-boop"
+
+  app({
+    view: [
+      [
+        "/:foo-:bar-:baz",
+        state =>
+          h(
+            "ul",
+            {},
+            Object.keys(state.router.params).map(key =>
+              h("li", {}, `${key}:${state.router.params[key]}`)
+            )
+          )
+      ]
+    ],
+    mixins: [Router]
   })
 
   expectHTMLToBe`
@@ -94,22 +127,30 @@ test("route params", () => {
   `
 })
 
-test("route params separated by a dash", () => {
-  window.location.pathname = "/beep-bop-boop"
+test("route params including a dot", () => {
+  window.location.pathname = "/beep/bop.bop/boop"
 
   app({
-    view: {
-      "/:foo-:bar-:baz": state =>
-        h("ul", {}, Object.keys(state.router.params).map(key =>
-          h("li", {}, `${key}:${state.router.params[key]}`)))
-    },
-    plugins: [Router]
+    view: [
+      [
+        "/:foo/:bar/:baz",
+        state =>
+          h(
+            "ul",
+            {},
+            Object.keys(state.router.params).map(key =>
+              h("li", {}, `${key}:${state.router.params[key]}`)
+            )
+          )
+      ]
+    ],
+    mixins: [Router]
   })
 
   expectHTMLToBe`
     <ul>
-      <li>foo:beep</li>
-      <li>bar:bop</li>
+			<li>foo:beep</li>
+      <li>bar:bop.bop</li>
       <li>baz:boop</li>
     </ul>
   `
@@ -119,10 +160,8 @@ test("routes with dashes into a single param key", () => {
   window.location.pathname = "/beep-bop-boop"
 
   app({
-    view: {
-      "/:foo": state => h("div", {}, state.router.params.foo)
-    },
-    plugins: [Router]
+    view: [["/:foo", state => h("div", {}, state.router.params.foo)]],
+    mixins: [Router]
   })
 
   expectHTMLToBe`
@@ -134,11 +173,11 @@ test("routes with dashes into a single param key", () => {
 
 test("popstate", () => {
   app({
-    view: {
-      "/": state => "",
-      "/foo": state => h("div", {}, "foo")
-    },
-    plugins: [Router]
+    view: [
+      ["/", state => ""],
+      ["/foo", state => h("div", {}, "foo")]
+    ],
+    mixins: [Router]
   })
 
   window.location.pathname = "/foo"
@@ -159,13 +198,13 @@ test("go", () => {
     expect(url).toMatch(/^\/(foo|bar|baz)$/)
 
   app({
-    view: {
-      "/": state => "",
-      "/foo": state => h("div", {}, "foo"),
-      "/bar": state => h("div", {}, "bar"),
-      "/baz": state => h("div", {}, "baz")
-    },
-    plugins: [Router],
+    view: [
+      ["/", state => ""],
+      ["/foo", state => h("div", {}, "foo")],
+      ["/bar", state => h("div", {}, "bar")],
+      ["/baz", state => h("div", {}, "baz")]
+    ],
+    mixins: [Router],
     events: {
       loaded: (state, actions) => {
         actions.router.go("/foo")

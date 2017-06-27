@@ -26,6 +26,6 @@
     "jest": "^19.0.2",
     "rollup": "^0.41.4",
     "rollup-plugin-uglify": "^1.0.1",
-    "hyperapp": "^0.8.1"
+    "hyperapp": "^0.9.3"
   }
 }

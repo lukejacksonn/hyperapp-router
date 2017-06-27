@@ -1,67 +1,70 @@
-export const Router = function(app) {
+export default function(app, view) {
   return {
+    state: {
+      router: match(location.pathname)
+    },
     actions: {
       router: {
-        match: function(state, data, actions, emit) {
+        match: function(state, actions, data, emit) {
           return {
-            router: match(data, emit)
+            router: emit("route", match(data))
           }
         },
-        go: function(state, data, actions) {
+        go: function(state, actions, data) {
           history.pushState({}, "", data)
-          actions.router.match(data)
+          actions.router.match(data.split("?")[0])
         }
       }
     },
     events: {
       loaded: function(state, actions) {
-        addEventListener("popstate", function() {
+        match()
+        addEventListener("popstate", match)
+
+        function match() {
           actions.router.match(location.pathname)
-        })
+        }
       },
-      render: function(state, actions, view, emit) {
-        return view[
-          (state.router || (state.router = match(location.pathname, emit)))
-            .match
-        ]
+      render: function() {
+        return view
       }
     }
   }
 
-  function match(data, emit) {
-    var match
-    var params = {}
-
-    for (var route in app.view) {
+  function match(data) {
+    for (var match, params = {}, i = 0, len = app.view.length; i < len; i++) {
+      var route = app.view[i][0]
       var keys = []
 
-      if (!match && route !== "*") {
+      if (!match) {
         data.replace(
-          new RegExp(
-            "^" +
-              route
-                .replace(/\//g, "\\/")
-                .replace(/:([A-Za-z0-9_]+)/g, function(_, key) {
-                  keys.push(key)
-
-                  return "([-A-Za-z0-9_]+)"
-                }) +
-              "/?$",
+          RegExp(
+            route === "*"
+              ? "." + route
+              : "^" +
+                  route
+                    .replace(/\//g, "\\/")
+                    .replace(/:([\w]+)/g, function(_, key) {
+                      keys.push(key)
+                      return "([-\\.\\w]+)"
+                    }) +
+                  "/?$",
             "g"
           ),
           function() {
-            for (var i = 1; i < arguments.length - 2; ) {
-              params[keys.shift()] = arguments[i++]
+            for (var j = 1; j < arguments.length - 2; ) {
+              params[keys.shift()] = arguments[j++]
             }
             match = route
+            view = app.view[i][1]
           }
         )
       }
     }
 
-    return emit("route", {
-      match: match || "*",
+    return {
+      match: match,
       params: params
-    })
+    }
   }
 }
