@@ -1,110 +1,73 @@
-# hyperapp-router
+# HyperApp Router
 
-Routing is the ability to move between different screens inside the same application.
+Routing is the ability to move between different screens inside the same [HyperApp](https://github.com/hyperapp/hyperapp) application.
 
-To add this functionality to your application, you can use `hyperapp-router` as a plugin.
+To add this functionality to your application, you can use `hyperapp-router` as a mixin.
 
 ```js
 import { Router } from "hyperapp-router"
 ```
 
-## <a name="router"></a> Router
-
-The router selects a view whose key matches the value of [location.pathname](https://developer.mozilla.org/en-US/docs/Web/API/Location) and updates the current view before it is rendered.
-
-To associate views with keys, use the [view](/hyperapp/hyperapp/wiki/Application#view) property as a dictionary where the _key_ is the route and the _value_ is the view function.
-
-* `*` Use to match when no other route matches.
-* `/` Use to match the index route.
-* `/:key` Use to match a route using the regular expression [A-Za-z0-9]+. The matched params are stored in [model.router.params](#router_params).
-
-### <a name="router_go"></a> actions.router.go
-
-Sets the [location.pathname](https://developer.mozilla.org/en-US/docs/Web/API/Location) to the given path. If the path matches an existing route, the corresponding view will be rendered.
-
-Signature: (path).
-
-<a name="cb1"></a> <sub>[View Online](https://hyperapp-router-go.glitch.me)</sub>
+## Usage
 
 ```jsx
 app({
-  view: {
-    "/": (model, actions) =>
-      <div>
-        <h1>Home</h1>
-        <button
-          onClick={_ => actions.router.go("/about")}>
-          About
-        </button>
-      </div>,
-
-    "/about": (model, actions) =>
-      <div>
-        <h1>About</h1>
-        <button
-          onClick={_ => actions.router.go("/")}>
-          Home
-        </button>
-      </div>
-  },
-  plugins: [Router]
+  view: [
+    ["/", (state, actions) => <h1>Home</h1>],
+    ["/login", (state, actions) => <h1>Login</h1>],
+    ["/:user", (state, actions) => <h1>Hi {state.router.params.user}</h1>],
+    ["*", (state, actions) => <h1>404</h1>],
+  ],
+  mixins: [Router]
 })
 ```
 
-### <a name="router_match"></a> model.router.match
+When the page loads or the browser fires a [popstate](https://developer.mozilla.org/en-US/docs/Web/Events/popstate) event, the first route that matches [location.pathname](https://developer.mozilla.org/en-US/docs/Web/API/Location) will be rendered.
 
-Stores the matched route.
+Routes are matched in the order in which they are declared. To use the wildcard <samp>*</samp> correctly, it must be declared last.
 
-<table>
-  <th>Route</th>
-  <th colspan=3>URL</th>
+|route                    | location.pathname    |
+|-------------------------|-----------------------------------|
+| <samp>/</samp>          | <samp>/</samp>
+| <samp>/:foo</samp>      | Match <samp>[A-Za-z0-9]+</samp>. See [params](#params).
+| <samp>*</samp>          | Match anything.
 
-  <tr>
-    <td>*</td>
-    <td>/foo</td>
-    <td>/foo/bar/baz</td>
-  </tr>
+To navigate to a different route use [actions.router.go](#go).
 
-  <tr>
-    <td>/:key</td>
-    <td>/foo</td>
-    <td>/bar</td>
-  </tr>
+## API
 
-  <tr>
-    <td>/item/:id</td>
-    <td>/item/7a45</td>
-    <td>/item/1c63</td>
-  </tr>
+### state
+#### params
 
-  <tr>
-    <td>/user/:name/post/:id</td>
-    <td>/user/hyper/post/9df0</td>
-    <td>/user/app/post/5ag1</td>
-  </tr>
-</table>
+Type: { <i>foo</i>: string, ... }
 
-### <a name="router_params"></a> model.router.params
+The matched route params.
 
-Stores the matched route params.
+|route                 |location.pathname    |state.router.params  |
+|----------------------|---------------------|---------------------|
+|<samp>/:foo</samp>    |/hyper               | { foo: "hyper" }    |
 
-<table>
-  <th>Route</th>
-  <th>URL</th>
-  <td><i>params</i>.<b>name</b></td>
-  <td><i>params</i>.<b>id</b></td>
+#### match
 
-  <tr>
-    <td>/user/:name/post/:id</td>
-    <td>/user/hyper/post/9df0</td>
-    <td>hyper</td>
-    <td>9df0</td>
-  </tr>
+Type: string
 
-  <tr>
-    <td>/user/:name/post/:id</td>
-    <td>/user/app/post/5ag1</td>
-    <td>app</td>
-    <td>5ag1</td>
-  </tr>
-</table>
+The matched route.
+
+### actions
+#### go
+
+Type: ([path](#router_go_path))
+* path: string
+
+Update [location.pathname](https://developer.mozilla.org/en-US/docs/Web/API/Location).
+
+### events
+#### route
+
+Type: ([state](/docs/api.md#state), [actions](/docs/api.md#actions), [data](#events-data), [emit](/docs/api.md#emit)) | Array\<[route](#route)\>
+
+* <a name="events-data"></a>data
+  * [params](#params)
+  * [match](#match)
+
+Fired when a route is matched.
